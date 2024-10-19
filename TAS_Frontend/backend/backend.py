@@ -45,9 +45,8 @@ class State(rx.State):
     address_value: str = ""
     def generate_route(self):
         print(f"Generating route for state: {self.state_value}, address: {self.address_value}")
-        # Here you would call your route generation logic
-        # For now, let's just update the map_image_url as a placeholder
-        self.map_image_url = f"/new/path/to/map/{self.state_value}_{self.address_value}.png"
+
+        aimage = self.create_route_image(self.state_value, self.address_value, [item["item_name"] for item in self.items])
         return rx.window_alert("Route generated!")
     def set_state(self, state: str):
         self.state_value = state
@@ -60,10 +59,11 @@ class State(rx.State):
     
     def create_route_image(self, state: str, address: str, list_of_items: List[str]):
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        key_path = os.path.join(current_dir, "..", "PRIVATE_KEY", "API_KEY")
+        key_path = os.path.join(current_dir, "..", "PRIVATE_KEY", "API_KEY.txt")
+
         with open(key_path, "r") as f:
             api_key = f.read().strip()
-        
+        print(api_key)    
         headers = {
             "Content-Type": "application/json",
             "x-api-key": api_key
@@ -104,8 +104,7 @@ class State(rx.State):
         
         # Convert base64 to data URI for display
         image_data_uri = f"data:image/png;base64,{base64_image}"
-        
-        # Update the map image URL
+
         self.update_map(image_data_uri)
 
         return rx.toast.success("Route image created successfully!", position="bottom-right")
