@@ -2,20 +2,30 @@ import reflex as rx
 from .views.navbar import navbar
 from .views.table import main_table
 from .backend.backend import State
+from .components.map_component import map_component
 
 def index() -> rx.Component:
-    return rx.vstack(
-        navbar(),
-        rx.box(
-            main_table(),
-            width="100%",
+    return rx.hstack(
+        rx.vstack(
+            navbar(),
+            rx.box(
+                main_table(),
+                width="100%",
+            ),
+            width="70%",
+            height="100vh",
+            bg=rx.color("accent", 1),
+            spacing="6",
+            padding_x=["1.5em", "1.5em", "3em"],
+            padding_y=["1em", "1em", "2em"],
         ),
-        height="100vh",
-        bg=rx.color("accent", 1),
+        rx.box(
+            map_component(),
+            width="30%",
+            height="100vh",
+        ),
         width="100%",
-        spacing="6",
-        padding_x=["1.5em", "1.5em", "3em"],
-        padding_y=["1em", "1em", "2em"],
+        height="100vh",
     )
 
 app = rx.App(

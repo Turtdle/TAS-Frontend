@@ -7,6 +7,7 @@ import reflex as rx
 from firebase_admin import credentials, firestore, initialize_app
 from typing import List, Dict, Any
 from typing import TypedDict, List
+
 # Initialize Firebase
 current_dir = os.path.dirname(os.path.abspath(__file__))
 key_path = os.path.join(current_dir, "..", "PRIVATE_KEY", "tashopping-c8efa-firebase-adminsdk-mnohm-a4ed75205a.json")
@@ -36,8 +37,11 @@ class State(rx.State):
     sort_value: str = "item_name"
     sort_reverse: bool = False
     search_value: str = ""
-
+    map_image_url: str = "/path/to/default/map/image.png"
     
+    def update_map(self, new_url: str):
+        self.map_image_url = new_url
+
     def load_entries(self) -> None:
         """Get all items from Firebase."""
         items_ref = db.collection('items')
