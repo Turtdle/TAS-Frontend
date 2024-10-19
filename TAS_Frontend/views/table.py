@@ -12,10 +12,10 @@ def _header_cell(text: str, icon: str):
         ),
     )
 
+
 def _show_item(item: Item):
-    """Show an item in a table row."""
     return rx.table.row(
-        rx.table.cell(item.item_name),
+        rx.table.cell(item["item_name"]),
         rx.table.cell(
             rx.hstack(
                 _update_item_dialog(item),
@@ -115,7 +115,8 @@ def _add_item_button() -> rx.Component:
         ),
     )
 
-def _update_item_dialog(item):
+
+def _update_item_dialog(item: Item):
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.icon_button(
@@ -162,7 +163,7 @@ def _update_item_dialog(item):
                             "text",
                             "item_name",
                             "box",
-                            item.item_name,
+                            str(item["item_name"]),  # Cast to string here
                         ),
                         spacing="3",
                         width="100%",
