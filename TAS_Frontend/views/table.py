@@ -28,7 +28,6 @@ def _add_item_button() -> rx.Component:
                 rx.text("Add Item", size="4", display=["none", "none", "block"]),
                 size="3",
             ),
-        
         ),
         rx.dialog.content(
             rx.hstack(
@@ -57,22 +56,20 @@ def _add_item_button() -> rx.Component:
                 align_items="center",
                 width="100%",
             ),
-            rx.flex(
-                rx.form.root(
-                    rx.flex(
-                        rx.hstack(
-                            # Name
-                            form_field(
-                                "Name",
-                                "Item Name",
-                                "text",
-                                "item_name",
-                                "item ",
-                            ),
-                            spacing="3",
-                            width="100%",
+            rx.form.root(
+                rx.flex(
+                    rx.hstack(
+                        # Name
+                        form_field(
+                            "Name",
+                            "Item Name",
+                            "text",
+                            "item_name",
+                            "users",
                         ),
-                        
+                        spacing="3",
+                        width="100%",
+                    ),
                     rx.flex(
                         rx.dialog.close(
                             rx.button(
@@ -92,12 +89,12 @@ def _add_item_button() -> rx.Component:
                         mt="4",
                         justify="end",
                     ),
-                    on_submit=State.add_Item_to_db,
-                    reset_on_submit=False,
+                    width="100%",
+                    direction="column",
+                    spacing="4",
                 ),
-                width="100%",
-                direction="column",
-                spacing="4",
+                on_submit=State.add_Item_to_db,
+                reset_on_submit=False,
             ),
             width="100%",
             max_width="450px",
@@ -106,10 +103,8 @@ def _add_item_button() -> rx.Component:
             border=f"2.5px solid {rx.color('accent', 7)}",
             border_radius="25px",
         ),
-    ),
-
     )
-def _update_customer_dialog(user):
+def _update_item_dialog(item):
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.icon_button(
@@ -117,7 +112,7 @@ def _update_customer_dialog(user):
                 color_scheme="green",
                 size="2",
                 variant="solid",
-                on_click=lambda: State.get_user(user),
+                on_click=lambda: State.get_item(item),
             ),
         ),
         rx.dialog.content(
@@ -130,12 +125,12 @@ def _update_customer_dialog(user):
                 ),
                 rx.vstack(
                     rx.dialog.title(
-                        "Edit Customer",
+                        "Edit Item",
                         weight="bold",
                         margin="0",
                     ),
                     rx.dialog.description(
-                        "Edit the customer's info",
+                        "Edit the item's info",
                     ),
                     spacing="1",
                     height="100%",
@@ -154,83 +149,11 @@ def _update_customer_dialog(user):
                             # Name
                             form_field(
                                 "Name",
-                                "Customer Name",
+                                "Item Name",
                                 "text",
-                                "customer_name",
-                                "user",
-                                user.customer_name,
-                            ),
-                            # Location
-                            form_field(
-                                "Location",
-                                "Customer Location",
-                                "text",
-                                "location",
-                                "map-pinned",
-                                user.location,
-                            ),
-                            spacing="3",
-                            width="100%",
-                        ),
-                        rx.hstack(
-                            # Email
-                            form_field(
-                                "Email",
-                                "user@reflex.dev",
-                                "email",
-                                "email",
-                                "mail",
-                                user.email,
-                            ),
-                            # Job
-                            form_field(
-                                "Job",
-                                "Customer Job",
-                                "text",
-                                "job",
-                                "briefcase",
-                                user.job,
-                            ),
-                            spacing="3",
-                            width="100%",
-                        ),
-                        # Gender
-                        rx.vstack(
-                            rx.hstack(
-                                rx.icon("user-round", size=16, stroke_width=1.5),
-                                rx.text("Gender"),
-                                align="center",
-                                spacing="2",
-                            ),
-                            rx.select(
-                                ["Male", "Female", "Other"],
-                                default_value=user.gender,
-                                name="gender",
-                                direction="row",
-                                as_child=True,
-                                required=True,
-                                width="100%",
-                            ),
-                            width="100%",
-                        ),
-                        rx.hstack(
-                            # Age
-                            form_field(
-                                "Age",
-                                "Customer Age",
-                                "number",
-                                "age",
-                                "person-standing",
-                                user.age.to(str),
-                            ),
-                            # Salary
-                            form_field(
-                                "Salary",
-                                "Customer Salary",
-                                "number",
-                                "salary",
-                                "dollar-sign",
-                                user.salary.to(str),
+                                "item_name",
+                                "box",
+                                item.item_name,
                             ),
                             spacing="3",
                             width="100%",
@@ -248,7 +171,7 @@ def _update_customer_dialog(user):
                         ),
                         rx.form.submit(
                             rx.dialog.close(
-                                rx.button("Update Customer"),
+                                rx.button("Update Item"),
                             ),
                             as_child=True,
                         ),
@@ -257,7 +180,7 @@ def _update_customer_dialog(user):
                         mt="4",
                         justify="end",
                     ),
-                    on_submit=State.update_customer_to_db,
+                    on_submit=State.update_item_to_db,
                     reset_on_submit=False,
                 ),
                 width="100%",
@@ -275,7 +198,7 @@ def _update_customer_dialog(user):
 def main_table():
     return rx.fragment(
         rx.flex(
-            _add_customer_button(),
+            _add_item_button(),
             rx.spacer(),
             rx.cond(
                 State.sort_reverse,

@@ -63,13 +63,6 @@ class State(rx.State):
     current_item: Item = Item()
     users: list[Item] = []
     products: dict[str, str] = {}
-    email_content_data: str = "Click 'Generate Email' to generate a personalized sales email."
-    gen_response = False
-    tone: str = "😊 Formal"
-    length: str = "1000"
-    search_value: str = ""
-    sort_value: str = ""
-    sort_reverse: bool = False
 
     def load_entries(self) -> list[Item]:
         """Get all users from the database."""
@@ -125,56 +118,17 @@ class State(rx.State):
             session.add(Item(**self.current_item))
             session.commit()
         self.load_entries()
-        return rx.toast.info(f"User {self.current_user['Item_name']} has been added.", position="bottom-right")
+        return rx.toast.info(f"User {self.current_user['item_name']} has been added.", position="bottom-right")
 
     def update_Item_to_db(self, form_data: dict):
-        self.current_user.update(form_data)
-        with rx.session() as session:
-            Item = session.exec(
-                select(Item).where(Item.id == self.current_user["id"])
-            ).first()
-            for field in Item.get_fields():
-                if field != "id":
-                    setattr(Item, field, self.current_user[field])
-            session.add(Item)
-            session.commit()
-        self.load_entries()
-        return rx.toast.info(f"User {self.current_user['Item_name']} has been modified.", position="bottom-right")
+        pass
 
     def delete_Item(self, id: int):
-        """Delete a Item from the database."""
-        with rx.session() as session:
-            Item = session.exec(
-                select(Item).where(Item.id == id)).first()
-            session.delete(Item)
-            session.commit()
-        self.load_entries()
-        return rx.toast.info(f"User {Item.Item_name} has been deleted.", position="bottom-right")
+        pass
 
     @rx.background
     async def call_openai(self):
-        session = get_openai_client().chat.completions.create(
-            user=self.router.session.client_token,
-            stream=True,
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": f"You are a salesperson at Reflex, a company that sells clothing. You have a list of products and Item data. Your task is to write a sales email to a Item recommending one of the products. The email should be personalized and include a recommendation based on the Item's data. The email should be {self.tone} and {self.length} characters long."},
-                {"role": "user", "content": f"Based on these {products} write a sales email to {self.current_user.Item_name} and email {self.current_user.email} who is {self.current_user.age} years old and a {self.current_user.gender} gender. {self.current_user.Item_name} lives in {self.current_user.location} and works as a {self.current_user.job} and earns {self.current_user.salary} per year. Make sure the email recommends one product only and is personalized to {self.current_user.Item_name}. The company is named Reflex its website is https://reflex.dev."},
-            ]
-        )
-        for item in session:
-            if hasattr(item.choices[0].delta, "content"):
-                response_text = item.choices[0].delta.content
-                async with self:
-                    if response_text is not None:
-                        self.email_content_data += response_text
-                yield
-
-        async with self:
-            self.gen_response = False
+        return "pass"
 
     def generate_email(self, user: Item):
-        self.current_user = Item(**user)
-        self.gen_response = True
-        self.email_content_data = ""
-        return State.call_openai
+        return "pass"
