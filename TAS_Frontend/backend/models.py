@@ -1,5 +1,5 @@
 import reflex as rx
-
+from sqlmodel import Field
 """
 class Customer(rx.Model, table=True):  # type: ignore
     The customer model.
@@ -17,5 +17,5 @@ class Customer(rx.Model, table=True):  # type: ignore
 class Item(rx.Model, table=True):  # type: ignore
     """The item model."""
 
+    id: int = Field(default=None, primary_key=True)
     item_name: str
-    id : int

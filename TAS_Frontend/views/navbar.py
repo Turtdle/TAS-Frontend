@@ -5,7 +5,7 @@ def navbar():
     return rx.flex(
         rx.badge(
             rx.icon(tag="mails", size=28),
-            rx.heading("Personalized Sales", size="6"),
+            rx.heading("TAShopping", size="6"),
             radius="large",
             align="center",
             color_scheme="blue",
