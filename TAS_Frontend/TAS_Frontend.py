@@ -9,20 +9,22 @@ def index() -> rx.Component:
         rx.vstack(
             navbar(),
             route_form(),
+            #rx.toast_group(),
             rx.box(
                 main_table(),
                 width="100%",
             ),
-            width="70%",
+            width="50%",
             height="100vh",
             bg=rx.color("accent", 1),
             spacing="6",
             padding_x=["1.5em", "1.5em", "3em"],
             padding_y=["1em", "1em", "2em"],
+            
         ),
         rx.box(
             map_component(),
-            width="30%",
+            width="50%",
             height="100vh",
         ),
         width="100%",

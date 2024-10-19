@@ -43,11 +43,13 @@ class State(rx.State):
     map_image_url: str = "/path/to/default/map/image.png"
     state_value: str = ""
     address_value: str = ""
+    status: str = "idle"
+    def set_status(self, status: str):
+        self.status = status
     def generate_route(self):
-        print(f"Generating route for state: {self.state_value}, address: {self.address_value}")
-
-        aimage = self.create_route_image(self.state_value, self.address_value, [item["item_name"] for item in self.items])
-        return rx.window_alert("Route generated!")
+        print("Generating route")
+        self.create_route_image(self.state_value, self.address_value, [item["item_name"] for item in self.items])
+        return rx.toast.success("Route generated successfully!", position="bottom-right")
     def set_state(self, state: str):
         self.state_value = state
 
@@ -58,12 +60,13 @@ class State(rx.State):
         self.map_image_url = new_url
     
     def create_route_image(self, state: str, address: str, list_of_items: List[str]):
+        #rx.toast.info("Firing up engines", position="bottom-right")
         current_dir = os.path.dirname(os.path.abspath(__file__))
         key_path = os.path.join(current_dir, "..", "PRIVATE_KEY", "API_KEY.txt")
 
         with open(key_path, "r") as f:
             api_key = f.read().strip()
-        print(api_key)    
+        
         headers = {
             "Content-Type": "application/json",
             "x-api-key": api_key
@@ -77,8 +80,10 @@ class State(rx.State):
             "address": address,
         }
         response = requests.post(base_url + "get_categories", json=data1, headers=headers)
+        
         response.raise_for_status()  # Raise an exception for bad responses
         categories = response.json()['labels']
+        #rx.toast.info("Store categories fetched", position="bottom-right")
 
         # Step 2: Categorize items
         data2 = {
@@ -88,6 +93,7 @@ class State(rx.State):
         response = requests.post(base_url + "categorize_items", json=data2, headers=headers)
         response.raise_for_status()
         categorized_items = response.json()
+        #rx.toast.info("Items categorized via AI", position="bottom-right")
 
         # Step 3: Create route
         data3 = {

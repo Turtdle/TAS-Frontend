@@ -44,7 +44,6 @@ def route_form():
             on_change=State.set_address,
         ),
         rx.button("Generate Route", on_click=State.generate_route),
-        rx.text(State.map_image_url),
         width="100%",
         spacing="4",
     )

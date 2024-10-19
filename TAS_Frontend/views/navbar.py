@@ -4,7 +4,7 @@ import reflex as rx
 def navbar():
     return rx.flex(
         rx.badge(
-            rx.icon(tag="mails", size=28),
+            rx.icon(tag="shopping-bag", size=28),
             rx.heading("TAShopping", size="6"),
             radius="large",
             align="center",
