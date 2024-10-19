@@ -3,13 +3,12 @@ from .views.navbar import navbar
 from .views.table import main_table
 from .backend.backend import State
 from .components.map_component import map_component
-from .views.table import route_form
+from .views.table import route_form, _make_route_button
 def index() -> rx.Component:
     return rx.hstack(
         rx.vstack(
             navbar(),
             route_form(),
-            #rx.toast_group(),
             rx.box(
                 main_table(),
                 width="100%",
@@ -20,7 +19,6 @@ def index() -> rx.Component:
             spacing="6",
             padding_x=["1.5em", "1.5em", "3em"],
             padding_y=["1em", "1em", "2em"],
-            
         ),
         rx.box(
             map_component(),
