@@ -1,7 +1,6 @@
 import reflex as rx
-from ..backend.backend import State, Customer
+from ..backend.backend import State, Item
 from ..components.form_field import form_field
-from ..components.gender_badges import gender_badge
 
 
 def _header_cell(text: str, icon: str):
@@ -15,67 +14,21 @@ def _header_cell(text: str, icon: str):
     )
 
 
-def _show_customer(user: Customer):
-    """Show a customer in a table row."""
+def _show_customer(user: Item):
+    """Show an item in a table row."""
     return rx.table.row(
-        rx.table.row_header_cell(user.customer_name),
-        rx.table.cell(user.email),
-        rx.table.cell(user.age),
-        rx.table.cell(
-            rx.match(
-                user.gender,
-                ("Male", gender_badge("Male")),
-                ("Female", gender_badge("Female")),
-                ("Other", gender_badge("Other")),
-                gender_badge("Other"),
-            )
-        ),
-        rx.table.cell(user.location),
-        rx.table.cell(user.job),
-        rx.table.cell(user.salary),
-        rx.table.cell(
-            rx.hstack(
-                rx.cond(
-                    (State.current_user.id == user.id),
-                    rx.button(
-                        rx.icon("mail-plus", size=22),
-                        rx.text("Generate Email", size="3"),
-                        color_scheme="blue",
-                        on_click=State.generate_email(user),
-                        loading=State.gen_response,
-                    ),
-                    rx.button(
-                        rx.icon("mail-plus", size=22),
-                        rx.text("Generate Email", size="3"),
-                        color_scheme="blue",
-                        on_click=State.generate_email(user),
-                        disabled=State.gen_response,
-                    ),
-                ),
-                _update_customer_dialog(user),
-                rx.icon_button(
-                    rx.icon("trash-2", size=22),
-                    on_click=lambda: State.delete_customer(getattr(user, "id")),
-                    size="2",
-                    variant="solid",
-                    color_scheme="red",
-                ),
-                min_width="max-content",
-            )
-        ),
-        style={"_hover": {"bg": rx.color("accent", 2)}},
-        align="center",
+        rx.table.cell(Item.item_name),
     )
 
-
-def _add_customer_button() -> rx.Component:
+def _add_item_button() -> rx.Component:
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.button(
                 rx.icon("plus", size=26),
-                rx.text("Add Customer", size="4", display=["none", "none", "block"]),
+                rx.text("Add Item", size="4", display=["none", "none", "block"]),
                 size="3",
             ),
+        
         ),
         rx.dialog.content(
             rx.hstack(
@@ -87,12 +40,12 @@ def _add_customer_button() -> rx.Component:
                 ),
                 rx.vstack(
                     rx.dialog.title(
-                        "Customer Onboarding",
+                        "Add Item",
                         weight="bold",
                         margin="0",
                     ),
                     rx.dialog.description(
-                        "Fill the form with the customer's info",
+                        "Fill the form with the item's info",
                     ),
                     spacing="1",
                     height="100%",
@@ -111,77 +64,15 @@ def _add_customer_button() -> rx.Component:
                             # Name
                             form_field(
                                 "Name",
-                                "Customer Name",
+                                "Item Name",
                                 "text",
-                                "customer_name",
-                                "user",
-                            ),
-                            # Location
-                            form_field(
-                                "Location",
-                                "Customer Location",
-                                "text",
-                                "location",
-                                "map-pinned",
+                                "item_name",
+                                "item ",
                             ),
                             spacing="3",
                             width="100%",
                         ),
-                        rx.hstack(
-                            # Email
-                            form_field(
-                                "Email", "user@reflex.dev", "email", "email", "mail"
-                            ),
-                            # Job
-                            form_field(
-                                "Job", "Customer Job", "text", "job", "briefcase"
-                            ),
-                            spacing="3",
-                            width="100%",
-                        ),
-                        # Gender
-                        rx.vstack(
-                            rx.hstack(
-                                rx.icon("user-round", size=16, stroke_width=1.5),
-                                rx.text("Gender"),
-                                align="center",
-                                spacing="2",
-                            ),
-                            rx.select(
-                                ["Male", "Female", "Other"],
-                                placeholder="Select Gender",
-                                name="gender",
-                                direction="row",
-                                as_child=True,
-                                required=True,
-                                width="100%",
-                            ),
-                            width="100%",
-                        ),
-                        rx.hstack(
-                            # Age
-                            form_field(
-                                "Age",
-                                "Customer Age",
-                                "number",
-                                "age",
-                                "person-standing",
-                            ),
-                            # Salary
-                            form_field(
-                                "Salary",
-                                "Customer Salary",
-                                "number",
-                                "salary",
-                                "dollar-sign",
-                            ),
-                            spacing="3",
-                            width="100%",
-                        ),
-                        width="100%",
-                        direction="column",
-                        spacing="3",
-                    ),
+                        
                     rx.flex(
                         rx.dialog.close(
                             rx.button(
@@ -192,7 +83,7 @@ def _add_customer_button() -> rx.Component:
                         ),
                         rx.form.submit(
                             rx.dialog.close(
-                                rx.button("Submit Customer"),
+                                rx.button("Submit Item"),
                             ),
                             as_child=True,
                         ),
@@ -201,7 +92,7 @@ def _add_customer_button() -> rx.Component:
                         mt="4",
                         justify="end",
                     ),
-                    on_submit=State.add_customer_to_db,
+                    on_submit=State.add_Item_to_db,
                     reset_on_submit=False,
                 ),
                 width="100%",
@@ -215,9 +106,9 @@ def _add_customer_button() -> rx.Component:
             border=f"2.5px solid {rx.color('accent', 7)}",
             border_radius="25px",
         ),
+    ),
+
     )
-
-
 def _update_customer_dialog(user):
     return rx.dialog.root(
         rx.dialog.trigger(

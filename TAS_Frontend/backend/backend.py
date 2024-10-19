@@ -4,7 +4,7 @@ import openai
 import reflex as rx
 from sqlmodel import select, asc, desc, or_, func
 
-from .models import Customer
+from .models import Item
 
 
 products: dict[str, dict] = {
@@ -60,8 +60,8 @@ def get_openai_client():
 class State(rx.State):
     """The app state."""
 
-    current_user: Customer = Customer()
-    users: list[Customer] = []
+    current_item: Item = Item()
+    users: list[Item] = []
     products: dict[str, str] = {}
     email_content_data: str = "Click 'Generate Email' to generate a personalized sales email."
     gen_response = False
@@ -71,23 +71,23 @@ class State(rx.State):
     sort_value: str = ""
     sort_reverse: bool = False
 
-    def load_entries(self) -> list[Customer]:
+    def load_entries(self) -> list[Item]:
         """Get all users from the database."""
         with rx.session() as session:
-            query = select(Customer)
+            query = select(Item)
             if self.search_value:
                 search_value = f"%{str(self.search_value).lower()}%"
                 query = query.where(
                     or_(
                         *[
-                            getattr(Customer, field).ilike(search_value)
-                            for field in Customer.get_fields()
+                            getattr(Item, field).ilike(search_value)
+                            for field in Item.get_fields()
                         ],
                     )
                 )
 
             if self.sort_value:
-                sort_column = getattr(Customer, self.sort_value)
+                sort_column = getattr(Item, self.sort_value)
                 if self.sort_value == "salary":
                     order = desc(sort_column) if self.sort_reverse else asc(
                         sort_column)
@@ -110,46 +110,46 @@ class State(rx.State):
         self.search_value = search_value
         self.load_entries()
 
-    def get_user(self, user: Customer):
+    def get_user(self, user: Item):
         self.current_user = user
 
-    def add_customer_to_db(self, form_data: dict):
-        self.current_user = form_data
+    def add_Item_to_db(self, form_data: dict):
+        self.current_item = form_data
 
         with rx.session() as session:
             if session.exec(
-                select(Customer).where(
-                    Customer.email == self.current_user["email"])
+                select(Item).where(
+                    Item.item_name == self.current_item["item_name"])
             ).first():
-                return rx.window_alert("User with this email already exists")
-            session.add(Customer(**self.current_user))
+                return rx.window_alert("Item already exists.")
+            session.add(Item(**self.current_item))
             session.commit()
         self.load_entries()
-        return rx.toast.info(f"User {self.current_user['customer_name']} has been added.", position="bottom-right")
+        return rx.toast.info(f"User {self.current_user['Item_name']} has been added.", position="bottom-right")
 
-    def update_customer_to_db(self, form_data: dict):
+    def update_Item_to_db(self, form_data: dict):
         self.current_user.update(form_data)
         with rx.session() as session:
-            customer = session.exec(
-                select(Customer).where(Customer.id == self.current_user["id"])
+            Item = session.exec(
+                select(Item).where(Item.id == self.current_user["id"])
             ).first()
-            for field in Customer.get_fields():
+            for field in Item.get_fields():
                 if field != "id":
-                    setattr(customer, field, self.current_user[field])
-            session.add(customer)
+                    setattr(Item, field, self.current_user[field])
+            session.add(Item)
             session.commit()
         self.load_entries()
-        return rx.toast.info(f"User {self.current_user['customer_name']} has been modified.", position="bottom-right")
+        return rx.toast.info(f"User {self.current_user['Item_name']} has been modified.", position="bottom-right")
 
-    def delete_customer(self, id: int):
-        """Delete a customer from the database."""
+    def delete_Item(self, id: int):
+        """Delete a Item from the database."""
         with rx.session() as session:
-            customer = session.exec(
-                select(Customer).where(Customer.id == id)).first()
-            session.delete(customer)
+            Item = session.exec(
+                select(Item).where(Item.id == id)).first()
+            session.delete(Item)
             session.commit()
         self.load_entries()
-        return rx.toast.info(f"User {customer.customer_name} has been deleted.", position="bottom-right")
+        return rx.toast.info(f"User {Item.Item_name} has been deleted.", position="bottom-right")
 
     @rx.background
     async def call_openai(self):
@@ -158,8 +158,8 @@ class State(rx.State):
             stream=True,
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": f"You are a salesperson at Reflex, a company that sells clothing. You have a list of products and customer data. Your task is to write a sales email to a customer recommending one of the products. The email should be personalized and include a recommendation based on the customer's data. The email should be {self.tone} and {self.length} characters long."},
-                {"role": "user", "content": f"Based on these {products} write a sales email to {self.current_user.customer_name} and email {self.current_user.email} who is {self.current_user.age} years old and a {self.current_user.gender} gender. {self.current_user.customer_name} lives in {self.current_user.location} and works as a {self.current_user.job} and earns {self.current_user.salary} per year. Make sure the email recommends one product only and is personalized to {self.current_user.customer_name}. The company is named Reflex its website is https://reflex.dev."},
+                {"role": "system", "content": f"You are a salesperson at Reflex, a company that sells clothing. You have a list of products and Item data. Your task is to write a sales email to a Item recommending one of the products. The email should be personalized and include a recommendation based on the Item's data. The email should be {self.tone} and {self.length} characters long."},
+                {"role": "user", "content": f"Based on these {products} write a sales email to {self.current_user.Item_name} and email {self.current_user.email} who is {self.current_user.age} years old and a {self.current_user.gender} gender. {self.current_user.Item_name} lives in {self.current_user.location} and works as a {self.current_user.job} and earns {self.current_user.salary} per year. Make sure the email recommends one product only and is personalized to {self.current_user.Item_name}. The company is named Reflex its website is https://reflex.dev."},
             ]
         )
         for item in session:
@@ -173,8 +173,8 @@ class State(rx.State):
         async with self:
             self.gen_response = False
 
-    def generate_email(self, user: Customer):
-        self.current_user = Customer(**user)
+    def generate_email(self, user: Item):
+        self.current_user = Item(**user)
         self.gen_response = True
         self.email_content_data = ""
         return State.call_openai

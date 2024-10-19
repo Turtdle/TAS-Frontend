@@ -1,8 +1,8 @@
 import reflex as rx
 
-
+"""
 class Customer(rx.Model, table=True):  # type: ignore
-    """The customer model."""
+    The customer model.
 
     customer_name: str
     email: str
@@ -11,3 +11,10 @@ class Customer(rx.Model, table=True):  # type: ignore
     location: str
     job: str
     salary: int
+
+"""
+
+class Item(rx.Model, table=True):  # type: ignore
+    """The item model."""
+
+    item_name: str
