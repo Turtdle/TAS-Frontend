@@ -7,7 +7,7 @@ import reflex as rx
 from firebase_admin import credentials, firestore, initialize_app
 from typing import List, Dict, Any
 from typing import TypedDict, List
-
+import requests
 # Initialize Firebase
 current_dir = os.path.dirname(os.path.abspath(__file__))
 key_path = os.path.join(current_dir, "..", "PRIVATE_KEY", "tashopping-c8efa-firebase-adminsdk-mnohm-a4ed75205a.json")
@@ -41,6 +41,58 @@ class State(rx.State):
     
     def update_map(self, new_url: str):
         self.map_image_url = new_url
+    
+    def create_route_image(self, state: str, address: str, list_of_items: List[str]):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        key_path = os.path.join(current_dir, "..", "PRIVATE_KEY", "API_KEY")
+        with open(key_path, "r") as f:
+            api_key = f.read().strip()
+        
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": api_key
+        }
+        
+        base_url = "https://oj35b6kjt7.execute-api.us-west-2.amazonaws.com/default/"
+
+        # Step 1: Get categories
+        data1 = {
+            "state": state,
+            "address": address,
+        }
+        response = requests.post(base_url + "get_categories", json=data1, headers=headers)
+        response.raise_for_status()  # Raise an exception for bad responses
+        categories = response.json()['labels']
+
+        # Step 2: Categorize items
+        data2 = {
+            "categories": categories,
+            "grocery_list": list_of_items
+        }
+        response = requests.post(base_url + "categorize_items", json=data2, headers=headers)
+        response.raise_for_status()
+        categorized_items = response.json()
+
+        # Step 3: Create route
+        data3 = {
+            "state": state,
+            "address": address,
+            "grocery_dic": categorized_items
+        }
+        response = requests.post(base_url + "create_route", json=data3, headers=headers, timeout=1000)
+        response.raise_for_status()
+        response_data = response.json()
+        
+        # Extract base64 image from response
+        base64_image = response_data['image']
+        
+        # Convert base64 to data URI for display
+        image_data_uri = f"data:image/png;base64,{base64_image}"
+        
+        # Update the map image URL
+        self.update_map(image_data_uri)
+
+        return rx.toast.success("Route image created successfully!", position="bottom-right")
 
     def load_entries(self) -> None:
         """Get all items from Firebase."""

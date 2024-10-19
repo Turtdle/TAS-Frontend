@@ -31,6 +31,9 @@ def _show_item(item: Item):
         ),
     )
 
+def _make_route_button() -> rx.Component:
+    return()
+
 def _add_item_button() -> rx.Component:
     return rx.dialog.root(
         rx.dialog.trigger(
