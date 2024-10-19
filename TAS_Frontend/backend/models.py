@@ -18,3 +18,4 @@ class Item(rx.Model, table=True):  # type: ignore
     """The item model."""
 
     item_name: str
+    id : int

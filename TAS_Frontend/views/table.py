@@ -2,7 +2,6 @@ import reflex as rx
 from ..backend.backend import State, Item
 from ..components.form_field import form_field
 
-
 def _header_cell(text: str, icon: str):
     return rx.table.column_header_cell(
         rx.hstack(
@@ -13,11 +12,23 @@ def _header_cell(text: str, icon: str):
         ),
     )
 
-
-def _show_customer(user: Item):
+def _show_item(item: Item):
     """Show an item in a table row."""
     return rx.table.row(
-        rx.table.cell(Item.item_name),
+        rx.table.cell(item.item_name),
+        rx.table.cell(
+            rx.hstack(
+                _update_item_dialog(item),
+                rx.icon_button(
+                    rx.icon("trash-2", size=22),
+                    color_scheme="red",
+                    size="2",
+                    variant="solid",
+                    on_click=lambda: State.delete_item(item),
+                ),
+                spacing="2",
+            )
+        ),
     )
 
 def _add_item_button() -> rx.Component:
@@ -32,7 +43,7 @@ def _add_item_button() -> rx.Component:
         rx.dialog.content(
             rx.hstack(
                 rx.badge(
-                    rx.icon(tag="users", size=34),
+                    rx.icon(tag="box", size=34),
                     color_scheme="blue",
                     radius="full",
                     padding="0.65rem",
@@ -59,13 +70,12 @@ def _add_item_button() -> rx.Component:
             rx.form.root(
                 rx.flex(
                     rx.hstack(
-                        # Name
                         form_field(
                             "Name",
                             "Item Name",
                             "text",
                             "item_name",
-                            "users",
+                            "box",
                         ),
                         spacing="3",
                         width="100%",
@@ -93,8 +103,8 @@ def _add_item_button() -> rx.Component:
                     direction="column",
                     spacing="4",
                 ),
-                on_submit=State.add_Item_to_db,
-                reset_on_submit=False,
+                on_submit=State.add_item_to_db,
+                reset_on_submit=True,
             ),
             width="100%",
             max_width="450px",
@@ -104,6 +114,7 @@ def _add_item_button() -> rx.Component:
             border_radius="25px",
         ),
     )
+
 def _update_item_dialog(item):
     return rx.dialog.root(
         rx.dialog.trigger(
@@ -142,24 +153,19 @@ def _update_item_dialog(item):
                 align_items="center",
                 width="100%",
             ),
-            rx.flex(
-                rx.form.root(
-                    rx.flex(
-                        rx.hstack(
-                            # Name
-                            form_field(
-                                "Name",
-                                "Item Name",
-                                "text",
-                                "item_name",
-                                "box",
-                                item.item_name,
-                            ),
-                            spacing="3",
-                            width="100%",
+            rx.form.root(
+                rx.flex(
+                    rx.hstack(
+                        form_field(
+                            "Name",
+                            "Item Name",
+                            "text",
+                            "item_name",
+                            "box",
+                            item.item_name,
                         ),
-                        direction="column",
                         spacing="3",
+                        width="100%",
                     ),
                     rx.flex(
                         rx.dialog.close(
@@ -180,12 +186,12 @@ def _update_item_dialog(item):
                         mt="4",
                         justify="end",
                     ),
-                    on_submit=State.update_item_to_db,
-                    reset_on_submit=False,
+                    width="100%",
+                    direction="column",
+                    spacing="4",
                 ),
-                width="100%",
-                direction="column",
-                spacing="4",
+                on_submit=State.update_item_to_db,
+                reset_on_submit=False,
             ),
             max_width="450px",
             padding="1.5em",
@@ -193,7 +199,6 @@ def _update_item_dialog(item):
             border_radius="25px",
         ),
     )
-
 
 def main_table():
     return rx.fragment(
@@ -218,15 +223,7 @@ def main_table():
                 ),
             ),
             rx.select(
-                [
-                    "customer_name",
-                    "email",
-                    "age",
-                    "gender",
-                    "location",
-                    "job",
-                    "salary",
-                ],
+                ["item_name"],
                 placeholder="Sort By: Name",
                 size="3",
                 on_change=lambda sort_value: State.sort_values(sort_value),
@@ -250,17 +247,11 @@ def main_table():
         rx.table.root(
             rx.table.header(
                 rx.table.row(
-                    _header_cell("Name", "square-user-round"),
-                    _header_cell("Email", "mail"),
-                    _header_cell("Age", "person-standing"),
-                    _header_cell("Gender", "user-round"),
-                    _header_cell("Location", "map-pinned"),
-                    _header_cell("Job", "briefcase"),
-                    _header_cell("Salary", "dollar-sign"),
+                    _header_cell("Name", "box"),
                     _header_cell("Actions", "cog"),
                 ),
             ),
-            rx.table.body(rx.foreach(State.users, _show_customer)),
+            rx.table.body(rx.foreach(State.items, _show_item)),
             variant="surface",
             size="3",
             width="100%",
