@@ -19,6 +19,9 @@ _client = None
 
 
 
+class StoreForm(TypedDict):
+    state: str
+    address: str
 class Item(TypedDict):
     id: str
     item_name: str
@@ -38,6 +41,19 @@ class State(rx.State):
     sort_reverse: bool = False
     search_value: str = ""
     map_image_url: str = "/path/to/default/map/image.png"
+    state_value: str = ""
+    address_value: str = ""
+    def generate_route(self):
+        print(f"Generating route for state: {self.state_value}, address: {self.address_value}")
+        # Here you would call your route generation logic
+        # For now, let's just update the map_image_url as a placeholder
+        self.map_image_url = f"/new/path/to/map/{self.state_value}_{self.address_value}.png"
+        return rx.window_alert("Route generated!")
+    def set_state(self, state: str):
+        self.state_value = state
+
+    def set_address(self, address: str):
+        self.address_value = address
     
     def update_map(self, new_url: str):
         self.map_image_url = new_url
@@ -108,7 +124,16 @@ class State(rx.State):
         docs = query.stream()
         self.items = [Item(id=doc.id, item_name=doc.to_dict().get('item_name', '')) for doc in docs]
 
+    @rx.background
+    async def _generate_route(self):
+        state = self.state_value
+        address = self.address_value
+        items = [item["item_name"] for item in self.items]
+        self.create_route_image(state, address, items)
 
+        self.update_map(self.map_image_url)
+        
+        return rx.toast.success("Route generated successfully!", position="bottom-right")
     def sort_values(self, sort_value: str):
         self.sort_value = sort_value
         self.load_entries()

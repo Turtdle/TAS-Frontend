@@ -3,11 +3,12 @@ from .views.navbar import navbar
 from .views.table import main_table
 from .backend.backend import State
 from .components.map_component import map_component
-
+from .views.table import route_form
 def index() -> rx.Component:
     return rx.hstack(
         rx.vstack(
             navbar(),
+            route_form(),
             rx.box(
                 main_table(),
                 width="100%",

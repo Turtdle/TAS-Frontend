@@ -1,7 +1,7 @@
 import reflex as rx
 from ..backend.backend import State, Item
 from ..components.form_field import form_field
-
+from typing import TypedDict
 def _header_cell(text: str, icon: str):
     return rx.table.column_header_cell(
         rx.hstack(
@@ -31,8 +31,56 @@ def _show_item(item: Item):
         ),
     )
 
-def _make_route_button() -> rx.Component:
-    return()
+#i hate this shit
+ 
+def route_form():
+    return rx.vstack(
+        rx.input(
+            placeholder="State",
+            on_change=State.set_state,
+        ),
+        rx.input(
+            placeholder="Address",
+            on_change=State.set_address,
+        ),
+        rx.button("Generate Route", on_click=State.generate_route),
+        rx.text(State.map_image_url),
+        width="100%",
+        spacing="4",
+    )
+def _make_route_button():
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.icon("map-pin", size=26),
+                rx.text("Generate Route", size="4", display=["none", "none", "block"]),
+                size="3",
+            ),
+        ),
+        rx.dialog.content(
+            rx.vstack(
+                rx.dialog.title("Generate Route", size="lg"),
+                rx.dialog.description(
+                    "Enter your location details and we'll generate a route for your shopping list."
+                ),
+                rx.input(
+                    placeholder="State",
+                    id="state",
+                    on_change=State.set_state,
+                ),
+                rx.input(
+                    placeholder="Address",
+                    id="address",
+                    on_change=State.set_address,
+                ),
+                rx.button("Generate Route", on_click=State._generate_route),
+                width="100%",
+                spacing="4",
+            ),
+            width="100%",
+            max_width="400px",
+        ),
+    )
 
 def _add_item_button() -> rx.Component:
     return rx.dialog.root(
