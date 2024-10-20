@@ -63,6 +63,8 @@ class State(rx.State):
         self.status = status
     def get_status(self) -> str:
         return self.status
+    def set_status_running(self):
+        self.status = f"Generating route for state: {self.state_value}, address: {self.address_value}"
     def generate_route(self):
         self.status = f"Generating route for state: {self.state_value}, address: {self.address_value}"
         aimage = self.create_route_image(self.state_value, self.address_value, [item["item_name"] for item in self.items])

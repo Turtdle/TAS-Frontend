@@ -94,6 +94,7 @@ def route_form():
         rx.button(
             "Generate Route",
             on_click=[
+                State.set_status_running,
                 State.generate_route,
                 lambda: rx.console_log("Generate Route clicked")  # Debug generate route click
             ],
