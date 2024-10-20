@@ -2,7 +2,6 @@
 
 
 import os
-import openai
 import reflex as rx
 from firebase_admin import credentials, firestore, initialize_app
 from typing import List, Dict, Any
@@ -62,8 +61,10 @@ class State(rx.State):
         return []
     def set_status(self, status: str):
         self.status = status
+    def get_status(self) -> str:
+        return self.status
     def generate_route(self):
-        print(f"Generating route for state: {self.state_value}, address: {self.address_value}")
+        self.status = f"Generating route for state: {self.state_value}, address: {self.address_value}"
         aimage = self.create_route_image(self.state_value, self.address_value, [item["item_name"] for item in self.items])
         return rx.toast.success("Route generated successfully!", position="bottom-right")
     def set_state(self, state: str):
@@ -125,7 +126,7 @@ class State(rx.State):
         image_data_uri = f"data:image/png;base64,{base64_image}"
 
         self.update_map(image_data_uri)
-
+        self.set_status("idle")
         return rx.toast.success("Route image created successfully!", position="bottom-right")
 
     def load_entries(self) -> None:
