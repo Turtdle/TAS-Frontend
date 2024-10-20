@@ -3,7 +3,7 @@ from ..backend.backend import State
 
 def map_component() -> rx.Component:
     return rx.box(
-        rx.text(State.get_status, size="2xl"),
+        rx.text(title=State.status, size="2xl"),
         rx.image(
             src=State.map_image_url,
             width="100%",
