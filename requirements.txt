@@ -1,3 +1,3 @@
-reflex
-requests
-firebase_admin
+firebase-admin==6.5.0
+grpcio-status==1.67.1
+jwt==1.3.1

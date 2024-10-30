@@ -1,8 +1,10 @@
-*.db
+db
 *.py[cod]
 .web
+PRIVATE_KEY/
 __pycache__/
 assets/external/
 reflex.db
-PRIVATE_KEY/
+.venv/
 venv/
+.vscode/

@@ -8,6 +8,15 @@ from typing import List, Dict, Any
 from typing import TypedDict, List
 import requests
 import json
+import jwt
+from google.auth.transport import requests
+from google.oauth2.id_token import verify_oauth2_token
+from .react_oauth_google import (
+    GoogleOAuthProvider,
+    GoogleLogin,
+)
+CLIENT_ID = "1076152994401-nfap05ojv7ajctp3ss2m9vpi2qv48t1f.apps.googleusercontent.com"
+
 # Initialize Firebase
 current_dir = os.path.dirname(os.path.abspath(__file__))
 key_path = os.path.join(current_dir, "..", "PRIVATE_KEY", "tashopping-c8efa-firebase-adminsdk-mnohm-a4ed75205a.json")
@@ -47,6 +56,28 @@ class State(rx.State):
     states: Dict[str, List[str]] = {}
     states_keys: List[str] = []
     addresses: List[str] = []
+    id_token_json: str = rx.LocalStorage()
+    user_email: str = ""
+    def print_email(self):
+        print("print_email method called")
+        print(f"User email in print_email: {self.user_email}")
+    def onSuccess(self, id_token: dict):
+        print("calling onsuccess")
+        try:
+            self.id_token_json = json.dumps(id_token)
+            print("ID token JSON:", self.id_token_json)
+            print("Logged in successfully!")
+            
+            decoded_token = verify_oauth2_token(
+                id_token["credential"],
+                requests.Request(),
+                CLIENT_ID
+            )
+            
+            self.user_email = decoded_token.get("email", "")
+            print(f"User email set to: {self.user_email}")
+        except Exception as e:
+            print(f"Error decoding token: {str(e)}")
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -54,6 +85,40 @@ class State(rx.State):
         with open(data_path, "r") as f:
             self.states = json.load(f)
         self.states_keys = list(self.states.keys())
+    @rx.var(cache=True)
+    def tokeninfo(self) -> dict[str, str]:
+        try:
+            return verify_oauth2_token(
+                json.loads(self.id_token_json)[
+                    "credential"
+                ],
+                requests.Request(),
+                CLIENT_ID,
+            )
+        except Exception as exc:
+            if self.id_token_json:
+                print(f"Error verifying token: {exc}")
+        return {}
+
+    def logout(self):
+        self.id_token_json = ""
+
+    @rx.var
+    def token_is_valid(self) -> bool:
+        try:
+            return bool(
+                self.tokeninfo
+                and int(self.tokeninfo.get("exp", 0))
+                > time.time()
+            )
+        except Exception:
+            return False
+
+    @rx.var(cache=True)
+    def protected_content(self) -> str:
+        if self.token_is_valid:
+            return f"This content can only be viewed by a logged in User. Nice to see you {self.tokeninfo['name']}"
+        return "Not logged in."
     def get_addresses(self) -> List[str]:
         if self.state_value:
             self.addresses = self.states[self.state_value]
@@ -133,7 +198,7 @@ class State(rx.State):
 
     def load_entries(self) -> None:
         """Get all items from Firebase."""
-        items_ref = db.collection('items')
+        items_ref = db.collection(self.user_email)
         query = items_ref
 
         if self.search_value:
@@ -172,7 +237,7 @@ class State(rx.State):
         self.current_item = item
 
     def add_item_to_db(self, form_data: Item):
-        items_ref = db.collection('items')
+        items_ref = db.collection(self.user_email)
         existing_item = items_ref.where('item_name', '==', form_data['item_name']).limit(1).get()
         if len(existing_item) > 0:
             return rx.window_alert("Item already exists.")
@@ -186,13 +251,13 @@ class State(rx.State):
         if not self.current_item.get('id'):
             return rx.window_alert("No item selected for update.")
         
-        item_ref = db.collection('items').document(self.current_item['id'])
+        item_ref = db.collection(self.user_email).document(self.current_item['id'])
         item_ref.update(form_data)
         self.load_entries()
         return rx.toast.success(f"Item {form_data['item_name']} has been updated.", position="bottom-right")
 
     def delete_item(self, item: Item):
-        db.collection('items').document(item['id']).delete()
+        db.collection(self.user_email).document(item['id']).delete()
         self.load_entries()
         return rx.toast.success(f"Item {item['item_name']} has been deleted.", position="bottom-right")
 
