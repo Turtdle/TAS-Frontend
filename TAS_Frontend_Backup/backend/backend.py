@@ -1,6 +1,5 @@
-
-
-
+from google.oauth2.id_token import verify_oauth2_token
+from google.auth.transport import requests as google_requests
 import os
 import reflex as rx
 from firebase_admin import credentials, firestore, initialize_app
@@ -9,8 +8,6 @@ from typing import TypedDict, List
 import requests
 import json
 import jwt
-from google.auth.transport import requests
-from google.oauth2.id_token import verify_oauth2_token
 from .react_oauth_google import (
     GoogleOAuthProvider,
     GoogleLogin,
@@ -70,10 +67,9 @@ class State(rx.State):
             
             decoded_token = verify_oauth2_token(
                 id_token["credential"],
-                requests.Request(),
+                google_requests.Request(),
                 CLIENT_ID
             )
-            
             self.user_email = decoded_token.get("email", "")
             print(f"User email set to: {self.user_email}")
         except Exception as e:
@@ -92,7 +88,7 @@ class State(rx.State):
                 json.loads(self.id_token_json)[
                     "credential"
                 ],
-                requests.Request(),
+                google_requests.Request(),
                 CLIENT_ID,
             )
         except Exception as exc:
@@ -102,6 +98,7 @@ class State(rx.State):
 
     def logout(self):
         self.id_token_json = ""
+        
 
     @rx.var
     def token_is_valid(self) -> bool:
@@ -131,6 +128,9 @@ class State(rx.State):
     def set_status_running(self):
         self.status = f"Generating route for state: {self.state_value}, address: {self.address_value}"
     def generate_route(self):
+        if not self.user_email:
+            self.status = f"Please log in first"
+            return rx.toast.warning("Please log in first")
         self.status = f"Generating route for state: {self.state_value}, address: {self.address_value}"
         aimage = self.create_route_image(self.state_value, self.address_value, [item["item_name"] for item in self.items])
         return rx.toast.success("Route generated successfully!", position="bottom-right")
@@ -198,17 +198,20 @@ class State(rx.State):
 
     def load_entries(self) -> None:
         """Get all items from Firebase."""
-        items_ref = db.collection(self.user_email)
-        query = items_ref
+        if not self.user_email:
+            self.items = []
+        else:
+            items_ref = db.collection(self.user_email)
+            query = items_ref
 
-        if self.search_value:
-            query = query.where('item_name', '>=', self.search_value).where('item_name', '<=', self.search_value + '\uf8ff')
+            if self.search_value:
+                query = query.where('item_name', '>=', self.search_value).where('item_name', '<=', self.search_value + '\uf8ff')
 
-        if self.sort_value:
-            query = query.order_by(self.sort_value, direction=firestore.Query.DESCENDING if self.sort_reverse else firestore.Query.ASCENDING)
+            if self.sort_value:
+                query = query.order_by(self.sort_value, direction=firestore.Query.DESCENDING if self.sort_reverse else firestore.Query.ASCENDING)
 
-        docs = query.stream()
-        self.items = [Item(id=doc.id, item_name=doc.to_dict().get('item_name', '')) for doc in docs]
+            docs = query.stream()
+            self.items = [Item(id=doc.id, item_name=doc.to_dict().get('item_name', '')) for doc in docs]
 
     @rx.background
     async def _generate_route(self):
